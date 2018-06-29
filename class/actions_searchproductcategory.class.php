@@ -126,7 +126,15 @@ class ActionsSearchProductCategory
 		
 		if (in_array('nomenclaturecard', $TContext))
 		{
-			if (GETPOST('json')) echo '<script type="text/javascript" src="'. dol_buildpath('/searchproductcategory/js/searchproductcategory.js.php', 1).'" ></script>' ;
+		    if (GETPOST('json')){
+		        echo '<script type="text/javascript" src="'. dol_buildpath('/searchproductcategory/js/searchproductcategory.js.php', 1).'" ></script>' ;
+		    
+		    }
+		    echo '<script type="text/javascript" >';
+		    echo ' var spc_object_type = \''.$object->element.'\';';
+		    echo ' var spc_object_id = \''. $object->id.'\';';
+		    echo ' var spc_fk_soc = 0;';
+		    echo '</script>';
 		}
 	}
 }
