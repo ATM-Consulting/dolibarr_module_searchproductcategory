@@ -24,14 +24,14 @@ $(document).ready(function() {
 		$('select#idprod').after($search);
 	
 	}
-	else if ($('#nomenclature_bt_add_product').length > 0 || $('#nomenclature_bt_clone_nomenclature').length > 0)
+	else if ($('.nomenclature_bt_add_product').length > 0 || $('#nomenclature_bt_clone_nomenclature').length > 0)
 	{
-		if ($('#nomenclature_bt_add_product').length > 0)
+		if ($('.nomenclature_bt_add_product').length > 0)
 		{
 			$search.find('a').attr('related-label','input[id*=search_fk_new_product_]');
-			$search.find('a').attr('related','input[id*=fk_new_product][type=hidden]');
+			$search.find('a').attr('related','[id^=fk_new_product]'); //ancienne valeur 'input[id*=fk_new_product][type=hidden]'); // lorsque le notre de produit n'est pas tres grand, alors il s'agit d'un select...
 
-			$('#nomenclature_bt_add_product').before($search.clone());
+			$('.nomenclature_bt_add_product').before($search.clone());
 		}
 		
 		if ($('#nomenclature_bt_clone_nomenclature').length > 0)
@@ -226,10 +226,12 @@ function checkProductSPC(fk_product) {
 function addProductSPC(fk_product,label,ref) {
 	
 	var related = $('div.arboContainer').attr('related');
-	$(related).val(fk_product);
+	$(related).val(fk_product).trigger('change');
+	
 	$('#prod_entry_mode_predef').prop('checked',true);
-	$('#prod_entry_mode_predef').click();	
+	$('#prod_entry_mode_predef').click();
 
+	
 	if(label) {
 		var relatedLabel = $('div.arboContainer').attr('related-label');
 		if (typeof ref != 'undefined') $(relatedLabel).val(ref);
@@ -237,6 +239,9 @@ function addProductSPC(fk_product,label,ref) {
 		
 		$('#idprod').trigger('change');
 	}
+	
+	
+	
 	
 	$pop = $( "div#popSearchProductByCategory" );
 	$pop.dialog('close');
