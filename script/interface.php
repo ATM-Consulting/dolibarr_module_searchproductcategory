@@ -55,12 +55,22 @@
 				//$o=new Propal($db);
 				$o->fetch($object_id);
 				
+				if(empty($o->thirdparty) && method_exists($o, 'fetch_thirdparty')) {
+					$o->fetch_thirdparty();
+				}
+
 				foreach($TProduct as $fk_product) {
 					$p=new Product($db);
 					$p->fetch($fk_product);
-					
+
+					$txtva = get_default_tva($mysoc, $o->thirdparty, $p->id);
+
 					$price = 0;
-					if (!empty($conf->global->PRODUIT_MULTIPRICES) && !empty($TProductPrice[$fk_product])) $price = price2num($TProductPrice[$fk_product]);
+					if (!empty($conf->global->PRODUIT_MULTIPRICES) && !empty($TProductPrice[$fk_product])) {
+						$price = price2num($TProductPrice[$fk_product]);
+
+						if (isset($p->multiprices_tva_tx[$o->thirdparty->price_level])) $txtva=$p->multiprices_tva_tx[$o->thirdparty->price_level];
+					}
 					if (empty($price)) $price = $p->price;
 					if($object_type == 'facture'){
 						$res = $o->addline($p->description, $price, $qty, $txtva,0,0,$fk_product, 0, '', '', 0, 0, '', 'HT',0, Facture::TYPE_STANDARD, -1, 0, '',0, 0, null, 0, '', 0, 100, '', $p->fk_unit , 0);
