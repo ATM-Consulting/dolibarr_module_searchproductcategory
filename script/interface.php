@@ -93,7 +93,12 @@ function _products($fk_parent=0) {
 	$parent = new Categorie($db);
 	$parent->fetch($fk_parent);
 	
-	$TProd = $parent->getObjectsInCateg('product');
+	$TProdNew = $parent->getObjectsInCateg('product');
+	$TProd = array();
+	foreach($TProdNew as $prod){
+	    if($prod->status == 1) $TProd[] = $prod;
+	}
+	
 	
 	if (!empty($conf->global->SPC_DISPLAY_DESC_OF_PRODUCT))
 	{
