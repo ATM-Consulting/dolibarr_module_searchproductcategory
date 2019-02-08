@@ -67,7 +67,13 @@ class ActionsSearchProductCategory
 
 		if (in_array('propalcard',$TContext) || in_array('ordercard',$TContext) || in_array('invoicecard',$TContext)) 
         {
-        	
+            ?>
+            <script type="text/javascript">
+                var spc_object_type = '<?php echo $object->element ?>';
+                var spc_object_id = '<?php echo $object->id ?>';
+                var spc_fk_soc = '<?php echo $object->socid; ?>';
+            </script>
+            <?php
 			if(empty($conf->global->SPC_USE_ONLY_POPIN) && $user->rights->searchproductcategory->user->search) {
         	//Charger les liste des projets de type feuille de temps pas encore facturé
 				$colspan1 = 4;
@@ -82,12 +88,8 @@ class ActionsSearchProductCategory
 				}
 				
 	        	$langs->load('searchproductcategory@searchproductcategory');
+				?>
 
-	        	?><script type="text/javascript">
-	        		var spc_object_type = '<?php echo $object->element ?>';
-	        		var spc_object_id = '<?php echo $object->id ?>';
-	        		var spc_fk_soc = '<?php echo $object->socid; ?>';
-	        	</script>
 				<tr class="liste_titre nodrag nodrop">
 					<td colspan="<?php echo $colspan1; ?>"><?php echo $langs->trans('SearchByCategory') ?></td>
 					<td align="right"><?php echo $langs->trans('Qty'); ?></td>
