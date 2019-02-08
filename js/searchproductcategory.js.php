@@ -42,6 +42,12 @@ $(document).ready(function() {
 			$('#nomenclature_bt_clone_nomenclature').before($search.clone());
 		}
 	}
+	else if($('input#search_idprodfournprice').length>0 && $('input#search_idprodfournprice').next().attr('class') != 'searchbycateg_icone') {
+        $search.find('a').attr('related-label','input#search_idprodfournprice');
+        $search.find('a').attr('related','input#idprodfournprice');
+
+        $('input#search_idprodfournprice').after($search);
+    }
 	else {
 		return false;
 	}
