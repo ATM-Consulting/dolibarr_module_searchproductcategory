@@ -43,8 +43,10 @@ $(document).ready(function() {
 		}
 	}
 	else if($('input#search_idprodfournprice').length>0 && $('input#search_idprodfournprice').next().attr('class') != 'searchbycateg_icone') {
-        $search.find('a').attr('related-label','input#search_idprodfournprice');
-        $search.find('a').attr('related','input#idprodfournprice');
+	    let a = $search.find('a');
+        a.attr('related-label','input#search_idprodfournprice');
+        a.attr('related','input#idprodfournprice');
+        a.attr('data-fourn', '1');
 
         $('input#search_idprodfournprice').after($search);
     }
@@ -132,9 +134,10 @@ function searchCategorySPC(a) {
 	
 }
 function getArboSPC(fk_parent, container,keyword) {
-	
 	container.find('ul.tree').remove();
 	container.append('<span class="loading"><?php echo img_picto('', 'working.gif') ?></span>');
+	let is_supplier = $('span.searchbycateg_icone a').data('fourn');
+	if(is_supplier === undefined) is_supplier = 0;
 	
 	$.ajax({
 		url:"<?php echo dol_buildpath('/searchproductcategory/script/interface.php',1) ?>"
@@ -143,6 +146,7 @@ function getArboSPC(fk_parent, container,keyword) {
 			,fk_parent:fk_parent
 			,keyword:keyword
 			,fk_soc:spc_fk_soc
+            ,is_supplier:is_supplier
 		}
 		,dataType:'json'	
 	}).done(function(data) {

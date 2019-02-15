@@ -66,7 +66,7 @@ class ActionsSearchProductCategory
 		$TContext = explode(':',$parameters['context']);
 
         if (in_array('propalcard',$TContext) || in_array('ordercard',$TContext) || in_array('invoicecard',$TContext)
-            || in_array('supplier_propalcard',$TContext) || in_array('ordersuppliercard',$TContext) || in_array('invoicesuppliercard',$TContext))
+            || in_array('supplier_proposalcard',$TContext) || in_array('ordersuppliercard',$TContext) || in_array('invoicesuppliercard',$TContext))
         {
             ?>
             <script type="text/javascript">
