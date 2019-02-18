@@ -60,7 +60,40 @@
 					}
 					if (empty($price)) $price = $p->price;
 					
-					$res = $o->addline($p->description, $price, $qty, $txtva,0,0,$fk_product);
+					
+					$remise_percent=0; 
+					$info_bits=0; 
+					$fk_remise_except=0; 
+					$price_base_type='HT'; 
+					$pu_ttc=0; 
+					$date_start=''; 
+					$date_end=''; 
+					$type=0; 
+					$rang=-1; 
+					$special_code=0; 
+					$fk_parent_line=0; 
+					$fk_fournprice=null; 
+					$pa_ht=0; 
+					$label='';
+					$array_options=0; 
+					$fk_unit=$p->fk_unit; 
+					$origin=''; 
+					$origin_id=0; 
+					$pu_ht_devise = 0;
+					
+					if($o->element=='commande')
+					{
+					    $res = $o->addline($p->description, $price, $qty, $txtva,0,0,$fk_product, $remise_percent, $info_bits, $fk_remise_except, $price_base_type, $pu_ttc, $date_start, $date_end, $type, $rang, $special_code, $fk_parent_line, $fk_fournprice, $pa_ht, $label,$array_options, $fk_unit, $origin, $origin_id, $pu_ht_devise);
+					}
+					elseif($o->element=='propal')
+					{
+					    $res = $o->addline($p->description, $price, $qty, $txtva,0,0,$fk_product, $remise_percent, $price_base_type, $pu_ttc, $info_bits, $type, $rang, $special_code, $fk_parent_line, $fk_fournprice, $pa_ht, $label,$date_start, $date_end,$array_options, $fk_unit, $origin, $origin_id, $pu_ht_devise, $fk_remise_except);
+					}
+					else
+					{
+					    $res = $o->addline($p->description, $price, $qty, $txtva,0,0,$fk_product);
+					}
+					
 				}
 				
 				
