@@ -16,12 +16,13 @@
 			$fk_parent = (int)GETPOST('fk_parent');
 			$keyword= GETPOST('keyword');
 			$fk_soc = GETPOST('fk_soc');
-			
+			$is_supplier = GETPOST('is_supplier', 'int');
+
 			$Tab =array(
 				'TCategory'=>_categories($fk_parent, $keyword)
-				,'TProduct'=>_products($fk_parent)
+				,'TProduct'=>_products($fk_parent, $is_supplier)
 			);
-			
+
 			if (!empty($conf->global->PRODUIT_MULTIPRICES))
 			{
 				require_once DOL_DOCUMENT_ROOT.'/societe/class/societe.class.php';
@@ -95,7 +96,7 @@
 			break;
 	}
 
-function _products($fk_parent=0) {
+function _products($fk_parent=0, $is_supplier = 0) {
 	global $db,$conf,$langs;
 
 	if(empty($fk_parent)) return array();
@@ -106,7 +107,8 @@ function _products($fk_parent=0) {
 	$TProdNew = $parent->getObjectsInCateg('product');
 	$TProd = array();
 	foreach($TProdNew as $prod){
-	    if($prod->status == 1) $TProd[] = $prod;
+	    if(empty($is_supplier) && $prod->status == 1) $TProd[] = $prod;
+	    elseif(! empty($is_supplier) && $prod->status_buy == 1) $TProd[] = $prod;
 	}
 	
 	

@@ -89,7 +89,16 @@ class modSearchProductCategory extends DolibarrModules
 		//							'workflow' => array('WORKFLOW_MODULE1_YOURACTIONTYPE_MODULE2'=>array('enabled'=>'! empty($conf->module1->enabled) && ! empty($conf->module2->enabled)', 'picto'=>'yourpicto@searchproductcategory')) // Set here all workflow context managed by module
 		//                        );
 		$this->module_parts = array(
-			'hooks' => array('propalcard','ordercard','invoicecard','globalcard','nomenclaturecard')
+			'hooks' => array(
+			    'propalcard',
+                'ordercard',
+                'invoicecard',
+                'globalcard',
+                'nomenclaturecard',
+                'supplier_proposalcard',
+                'ordersuppliercard',
+                'invoicesuppliercard'
+            )
 			,'js'=>array('/searchproductcategory/js/searchproductcategory.js.php')
 			,'css'=>array('/searchproductcategory/css/searchproductcategory.css')
 		);
