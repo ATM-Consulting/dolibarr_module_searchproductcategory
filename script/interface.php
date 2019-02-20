@@ -116,7 +116,9 @@ function _products($fk_parent=0) {
 	$parent->fetch($fk_parent);
 	
 	$TProd = $parent->getObjectsInCateg('product');
-	
+
+	foreach($TProd as $k=>&$v) if(empty($v->status)) unset($TProd[$k]);
+
 	if (!empty($conf->global->SPC_DISPLAY_DESC_OF_PRODUCT))
 	{
 		require_once DOL_DOCUMENT_ROOT.'/core/lib/functions.lib.php';
