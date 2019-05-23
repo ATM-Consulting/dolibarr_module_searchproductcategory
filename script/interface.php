@@ -57,6 +57,22 @@
 						$price = price2num($TProductPrice[$fk_product]);
 
 						if (isset($p->multiprices_tva_tx[$o->thirdparty->price_level])) $txtva=$p->multiprices_tva_tx[$o->thirdparty->price_level];
+					} elseif(!empty($conf->global->PRODUIT_CUSTOMER_PRICES)) {
+	                                        require_once DOL_DOCUMENT_ROOT . '/product/class/productcustomerprice.class.php';
+
+        	                                $prodcustprice = new Productcustomerprice($db);
+
+                	                        $filter = array('t.fk_product' => $p->id, 't.fk_soc' => $o->socid);
+
+                        	                $result = $prodcustprice->fetch_all('', '', 0, 0, $filter);
+                                	        if ($result) {
+	                                                // If there is some prices specific to the customer
+	                                                if (count($prodcustprice->lines) > 0) {
+	                                                        $price = price($prodcustprice->lines[0]->price);
+	                                                        $txtva = ($prodcustprice->lines[0]->default_vat_code ? $prodcustprice->lines[0]->tva_tx . ' ('.$prodcustprice->lines[0]->default_vat_code.' )' : $prodcustprice->lines[0]->tva_tx);
+	                                                        if ($prodcustprice->lines[0]->default_vat_code && ! preg_match('/\(.*\)/', $tva_tx)) $txtva.= ' ('.$prodcustprice->lines[0]->default_vat_code.')';
+	                                                }
+	                                        }
 					}
 					if (empty($price)) $price = $p->price;
 					
