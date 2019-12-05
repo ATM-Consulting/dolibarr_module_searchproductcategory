@@ -100,6 +100,21 @@ $(document).ready(function() {
 		});
 		
 	});
+
+	// On empêche les pressions sur la touche entrée de provoquer le submit du formulaire d'ajout de ligne
+	$('#arboresenceCategoryProduct').on('keypress', 'input[name^="spc"]', function(event)
+	{
+		// 13 => touche entrée
+	    if (event.which != 13)
+		{
+		    return true;
+		}
+
+	    // on provoque le clic sur le lien qui permet de rechercher
+	    $(this).next('a').trigger('click');
+
+	    return false;
+	});
 });
 
 function openSearchProductByCategory(a) {
@@ -130,12 +145,25 @@ function openSearchProductByCategory(a) {
 	
 }
 function searchCategorySPC(a) {
-	
-	var keyword = $(a).prev('input[name=spc_keyword]').val();
-	getArboSPC(0, $("div#arboresenceCategoryProduct,div#popSearchProductByCategory div.arbo"), keyword) ;
+
+    var keyword = $(a).prev('input[name=spc_keyword]').val();
+    getArboSPC(0, $("div#arboresenceCategoryProduct,div#popSearchProductByCategory div.arbo"), keyword) ;
+
+}
+
+
+function searchProductIntoCategorySPC(fk_parent, elem) {
+    let keyword = $(elem).parents('#arboresenceCategoryProduct').first().find('input[name=spc_keyword]').val();
+	let productKeyword = $(elem).prev('input.spc_product_keyword_input').val();
+	getArboSPC(fk_parent, $("div#arboresenceCategoryProduct,div#popSearchProductByCategory div.arbo"), keyword, productKeyword);
 	
 }
-function getArboSPC(fk_parent, container,keyword) {
+
+
+function getArboSPC(fk_parent, container, keyword = '', productKeyword = '')
+{
+    let parentLabel = $('li[catid=' + fk_parent + ']').length > 0 ? $('li[catid=' + fk_parent + ']').children('a').first().html() : '';
+    let displayGlobalProductFilter = fk_parent > 0 && $('li[catid=' + fk_parent + ']').length > 0;
 	container.find('ul.tree').remove();
 	container.append('<span class="loading"><?php echo img_picto('', 'working.gif') ?></span>');
 	let is_supplier = $('span.searchbycateg_icone a').data('fourn');
@@ -147,12 +175,13 @@ function getArboSPC(fk_parent, container,keyword) {
 			get:"categories"
 			,fk_parent:fk_parent
 			,keyword:keyword
+			,productKeyword:productKeyword
 			,fk_soc:spc_fk_soc
             ,is_supplier:is_supplier
 		}
 		,dataType:'json'	
 	}).done(function(data) {
-		
+
 		$ul = $('<ul class="tree" fk_parent="'+fk_parent+'"></ul>');
 		
 		if(data.TCategory.length == 0 && data.TProduct.length ==0) {
@@ -168,7 +197,18 @@ function getArboSPC(fk_parent, container,keyword) {
 		else {
 			$.each(data.TCategory,function(i,item) {
 				spc_line_class = (spc_line_class == 'even') ? 'odd' : 'even';
-				$ul.append('<li class="category '+spc_line_class+'" catid="'+item.id+'"><a href="javascript:getArboSPC('+item.id+', $(\'li[catid='+item.id+']\') )">'+item.label+'</a></li>');
+				$ul.append('\
+                    <li class="category '+spc_line_class+'" catid="'+item.id+'">\
+                        <a href="javascript:getArboSPC('+item.id+', $(\'li[catid='+item.id+']\') )">'+item.label+'</a>\
+                        <div style="float:right; text-align: right">\
+							<?php echo dol_escape_js($langs->trans('SearchForProductInThisCategory'), 1); ?> :\
+							<input name="spc_product_keyword_' + item.id + '" class="spc_product_keyword_input" />\
+							<a href="javascript:;" onclick="searchProductIntoCategorySPC('+item.id+', this);">\
+								<?php echo dol_escape_js(img_picto('','search'), 1); ?>\
+							</a>\
+						</div>\
+                        <div style="clear: both"></div>\
+			        </li>');
 			});
 			
 			$.each(data.TProduct,function(i,item) {
@@ -209,6 +249,21 @@ function getArboSPC(fk_parent, container,keyword) {
 				
 				$ul.append($li);
 			});
+
+			// Si la catégorie pour laquelle l'appel a été fait n'est pas affichée, on affiche le filtre de recherche de
+			// produits dans cette catégorie
+            if (fk_parent > 0 && $('#arboresenceCategoryProduct').find('li[catid=' + fk_parent + ']').length == 0)
+            {
+                $('#arboresenceCategoryProduct>div').append('\
+					<div style="float: right; text-align: right">\
+						<?php echo dol_escape_js($langs->trans('SearchForProductInCategory'), 1); ?> "' + parentLabel + '" :\
+						<input name="spc_product_keyword_' + fk_parent + '" class="spc_product_keyword_input" value="' + productKeyword + '" />\
+						<a href="javascript:;" onclick="searchProductIntoCategorySPC(' + fk_parent + ', this);">\
+							<?php echo dol_escape_js(img_picto('','search'), 1); ?>\
+						</a>\
+					</div>\
+					<div style="clear: both"></div>');
+            }
 		}
 		
 		container.find('span.loading').remove();
@@ -258,7 +313,12 @@ function initSearchProductByCategory(selector) {
 	
 	$arbo = $( selector );
 	$arbo.html();
-	$arbo.append('<div><input type="text" value="" name="spc_keyword" size="10" /> <a href="javascript:;" onclick="searchCategorySPC(this)"><?php echo img_picto('','search'); ?></a></div>');
+	$arbo.append('\
+		<div>\
+			<?php echo dol_escape_js($langs->trans('FilterCategoriesByName'), 1); ?> :\
+			<input type="text" value="" name="spc_keyword" size="10" />\
+			<a href="javascript:;" onclick="searchCategorySPC(this)"><?php echo img_picto('','search'); ?></a>\
+		</div>');
 	$arbo.append('<ul class="tree"><?php echo img_picto('', 'working.gif') ?></ul>');
 	
 	getArboSPC(0, $arbo);

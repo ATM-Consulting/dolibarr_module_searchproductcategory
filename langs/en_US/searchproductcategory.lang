@@ -1,7 +1,17 @@
 Module104930Name = SearchProductCategory
-Module104930Desc = SearchProductCategory Descripion
+Module104930Desc = SearchProductCategory Description
 
 ATMAbout = This module has been developed by <a href="http://www.atm-consulting.fr" target="_blank">ATM Consulting</a><br>You can find the documentation on our <a href="http://wiki.atm-consulting.fr/index.php/Accueil" target="_blank">wiki</a><br><br>For any question or feedback, contact us on <a href="mailto:support@atm-consulting.fr">support@atm-consulting.fr</a><br><br>For any commercial question, contact us on <a href="mailto:contact@atm-consulting.fr">contact@atm-consulting.fr</a> or at +33 9 77 19 50 70<br><br>Find our other modules on <a href="http://www.dolistore.com/search.php?orderby=position&orderway=desc&search_query=atm&submit_search=Rechercher" target="_blank">Dolistore</a>
 
 SearchProductCategorySetup = SearchProductCategory module setup
 SearchProductCategoryAbout = About SearchProductCategory
+SearchByCategory=Search by category
+NothingHere=No sub-category or product
+set_SPC_DO_NOT_LOAD_PARENT_CAT=Don't display root categories by default
+DoASearch=Please make a search/No result for your search
+SPC_DISPLAY_DESC_OF_PRODUCT=Display an icon containing the product's description for every product of the list
+SPC_USE_ONLY_POPIN=Only use the search in pop-in (this makes the standard table disappear)
+
+SearchForProductInThisCategory=Search for products in this category
+SearchForProductInCategory=Search for products in the category
+FilterCategoriesByName=Filter categories by name
