@@ -1,6 +1,8 @@
 <?php
 	require '../config.php';
 
+	header('Content-Type: application/javascript');
+
 	if(empty($user->rights->searchproductcategory->user->search)) exit;
 
 	$langs->load('searchproductcategory@searchproductcategory');

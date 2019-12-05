@@ -71,15 +71,63 @@
 						$price = price2num($TProductPrice[$fk_product]);
 
 						if (isset($p->multiprices_tva_tx[$o->thirdparty->price_level])) $txtva=$p->multiprices_tva_tx[$o->thirdparty->price_level];
+					} elseif(!empty($conf->global->PRODUIT_CUSTOMER_PRICES)) {
+	                                        require_once DOL_DOCUMENT_ROOT . '/product/class/productcustomerprice.class.php';
+
+        	                                $prodcustprice = new Productcustomerprice($db);
+
+                	                        $filter = array('t.fk_product' => $p->id, 't.fk_soc' => $o->socid);
+
+                        	                $result = $prodcustprice->fetch_all('', '', 0, 0, $filter);
+                                	        if ($result) {
+	                                                // If there is some prices specific to the customer
+	                                                if (count($prodcustprice->lines) > 0) {
+	                                                        $price = price($prodcustprice->lines[0]->price);
+	                                                        $txtva = ($prodcustprice->lines[0]->default_vat_code ? $prodcustprice->lines[0]->tva_tx . ' ('.$prodcustprice->lines[0]->default_vat_code.' )' : $prodcustprice->lines[0]->tva_tx);
+	                                                        if ($prodcustprice->lines[0]->default_vat_code && ! preg_match('/\(.*\)/', $tva_tx)) $txtva.= ' ('.$prodcustprice->lines[0]->default_vat_code.')';
+	                                                }
+	                                        }
 					}
 					if (empty($price)) $price = $p->price;
-					if($object_type == 'facture'){
-						$res = $o->addline($p->description, $price, $qty, $txtva,0,0,$fk_product, 0, '', '', 0, 0, '', 'HT',0, Facture::TYPE_STANDARD, -1, 0, '',0, 0, null, 0, '', 0, 100, '', $p->fk_unit , 0);
-					}elseif($object_type == 'propal'){
-						$res = $o->addline($p->description, $price, $qty, $txtva,0,0,$fk_product,0.0, 'HT', 0.0,0, 0, -1, 0,0, 0, 0, '','', '',0, $p->fk_unit);
-					}elseif($object_type == 'commande'){
-						$res = $o->addline($p->description, $price, $qty, $txtva,0,0,$fk_product, 0, 0, 0, 'HT', 0, '', '', 0, -1, 0, 0, null, 0, '',0, $p->fk_unit);
-					}else{
+					
+					
+					$remise_percent=0;
+					$info_bits=0;
+					$fk_remise_except=0;
+					$price_base_type='HT';
+					$pu_ttc=0;
+					$date_start='';
+					$date_end='';
+					$type=0;
+					$rang=-1;
+					$special_code=0;
+					$fk_parent_line=0;
+					$fk_fournprice=null;
+					$pa_ht=0;
+					$label='';
+					$array_options=0;
+					$fk_unit=$p->fk_unit;
+					$origin='';
+					$origin_id=0;
+					$pu_ht_devise = 0;
+					$ventil = 0;
+					$situation_percent = 100;
+					$fk_prev_id = 0;
+					
+					if($o->element == 'commande')
+					{
+					    $res = $o->addline($p->description, $price, $qty, $txtva,0,0,$fk_product, $remise_percent, $info_bits, $fk_remise_except, $price_base_type, $pu_ttc, $date_start, $date_end, $type, $rang, $special_code, $fk_parent_line, $fk_fournprice, $pa_ht, $label,$array_options, $fk_unit, $origin, $origin_id, $pu_ht_devise);
+					}
+					elseif($o->element == 'propal')
+					{
+						$res = $o->addline($p->description, $price, $qty, $txtva,0,0,$fk_product, $remise_percent, $price_base_type, $pu_ttc, $info_bits, $type, $rang, $special_code, $fk_parent_line, $fk_fournprice, $pa_ht, $label,$date_start, $date_end,$array_options, $fk_unit, $origin, $origin_id, $pu_ht_devise, $fk_remise_except);
+					}
+					elseif($o->element == 'facture')
+					{
+						$res = $o->addline($p->description, $price, $qty, $txtva,0,0,$fk_product, $remise_percent, $date_start, $date_end, $ventil, $info_bits, $fk_remise_except, $price_base_type, $pu_ttc, $type, $rang, $special_code, $origin, $origin_id, $fk_parent_line, $fk_fournprice, $pa_ht, $label, $array_options, $situation_percent, $fk_prev_id, $fk_unit, $pu_ht_devise);
+					}
+					else
+					{
 						$res = $o->addline($p->description, $price, $qty, $txtva,0,0,$fk_product);
 					}
 					
@@ -130,12 +178,23 @@ function _products($fk_parent=0, $is_supplier = 0) {
 function _categories($fk_parent=0, $keyword='') {
 	global $db,$conf;
 	$TFille=array();
-	if(!empty($keyword)) {
-		$resultset = $db->query("SELECT rowid FROM ".MAIN_DB_PREFIX."categorie WHERE label LIKE '%".addslashes($keyword)."%' ORDER BY label");		
-		while($obj = $db->fetch_object($resultset)) {
-			$cat = new Categorie($db);
-			$cat->fetch($obj->rowid);
-			$TFille[] = $cat;
+	if(!empty($keyword))
+	{
+		$sql = 'SELECT rowid
+				FROM ' . MAIN_DB_PREFIX. 'categorie
+				WHERE type = 0
+				AND label LIKE "%' . $db->escape($keyword) . '%"
+				ORDER BY label';
+
+		$resultset = $db->query($sql);
+
+		if ($resultset !== false)
+		{
+			while ($obj = $db->fetch_object($resultset)) {
+				$cat = new Categorie($db);
+				$cat->fetch($obj->rowid);
+				$TFille[] = $cat;
+			}
 		}
 	}
 	else {
