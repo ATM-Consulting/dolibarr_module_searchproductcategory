@@ -147,12 +147,23 @@ function _products($fk_parent=0) {
 function _categories($fk_parent=0, $keyword='') {
 	global $db,$conf;
 	$TFille=array();
-	if(!empty($keyword)) {
-		$resultset = $db->query("SELECT rowid FROM ".MAIN_DB_PREFIX."categorie WHERE label LIKE '%".addslashes($keyword)."%' ORDER BY label");		
-		while($obj = $db->fetch_object($resultset)) {
-			$cat = new Categorie($db);
-			$cat->fetch($obj->rowid);
-			$TFille[] = $cat;
+	if(!empty($keyword))
+	{
+		$sql = 'SELECT rowid
+				FROM ' . MAIN_DB_PREFIX. 'categorie
+				WHERE type = 0
+				AND label LIKE "%' . $db->escape($keyword) . '%"
+				ORDER BY label';
+
+		$resultset = $db->query($sql);
+
+		if ($resultset !== false)
+		{
+			while ($obj = $db->fetch_object($resultset)) {
+				$cat = new Categorie($db);
+				$cat->fetch($obj->rowid);
+				$TFille[] = $cat;
+			}
 		}
 	}
 	else {
