@@ -15,12 +15,13 @@
 		case 'categories':
 			$fk_parent = (int)GETPOST('fk_parent');
 			$keyword= GETPOST('keyword');
+			$productKeyword = GETPOST('productKeyword');
 			$fk_soc = GETPOST('fk_soc');
 			$is_supplier = GETPOST('is_supplier', 'int');
 
 			$Tab =array(
 				'TCategory'=>_categories($fk_parent, $keyword)
-				,'TProduct'=>_products($fk_parent, $is_supplier)
+				,'TProduct'=>_products($fk_parent, $is_supplier, $productKeyword)
 			);
 
 			if (!empty($conf->global->PRODUIT_MULTIPRICES))
@@ -144,7 +145,7 @@
 			break;
 	}
 
-function _products($fk_parent=0, $is_supplier = 0) {
+function _products($fk_parent=0, $is_supplier = 0, $productKeyword = '') {
 	global $db,$conf,$langs;
 
 	if(empty($fk_parent)) return array();
@@ -154,9 +155,26 @@ function _products($fk_parent=0, $is_supplier = 0) {
 	
 	$TProdNew = $parent->getObjectsInCateg('product');
 	$TProd = array();
-	foreach($TProdNew as $prod){
-	    if(empty($is_supplier) && $prod->status == 1) $TProd[] = $prod;
-	    elseif(! empty($is_supplier) && $prod->status_buy == 1) $TProd[] = $prod;
+
+	/** @var Product $prod */
+	foreach($TProdNew as $prod)
+	{
+		if (empty($is_supplier) && empty($prod->status)) continue;
+
+		if (! empty($is_supplier) && empty($prod->status_buy)) continue;
+
+		if (! empty($productKeyword))
+		{
+			// List des champs dans lesquels on fait la recherche
+			$TElementsThatCanMatch = array($prod->ref, $prod->label, $prod->description, $prod->accountancy_code_buy, $prod->accountancy_code_sell);
+
+			// preg_grep() retourne tous les élements du tableau passé en 2ème paramètre qui correspondent au pattern
+			$TMatches = preg_grep('@' . preg_quote($productKeyword, '@') . '@i', $TElementsThatCanMatch);
+
+			if (empty($TMatches)) continue;
+		}
+
+	    $TProd[] = $prod;
 	}
 	
 	
