@@ -252,10 +252,11 @@ function getArboSPC(fk_parent, container, keyword = '', productKeyword = '')
 
 			// Si la catégorie pour laquelle l'appel a été fait n'est pas affichée, on affiche le filtre de recherche de
 			// produits dans cette catégorie
-            if (fk_parent > 0 && $('#arboresenceCategoryProduct').find('li[catid=' + fk_parent + ']').length == 0)
+            if (fk_parent > 0 && $('#arboresenceCategoryProduct').find('li[catid=' + fk_parent + ']').length == 0 && $('#arboresenceCategoryProduct #globalFilter' + fk_parent).length == 0)
             {
+                $('#arboresenceCategoryProduct .globalFilter').remove();
                 $('#arboresenceCategoryProduct>div').append('\
-					<div style="float: right; text-align: right">\
+					<div id="globalFilter' + fk_parent +'" class="globalFilter" style="float: right; text-align: right">\
 						<?php echo dol_escape_js($langs->trans('SearchForProductInCategory'), 1); ?> "' + parentLabel + '" :\
 						<input name="spc_product_keyword_' + fk_parent + '" class="spc_product_keyword_input" value="' + productKeyword + '" />\
 						<a href="javascript:;" onclick="searchProductIntoCategorySPC(' + fk_parent + ', this);">\
