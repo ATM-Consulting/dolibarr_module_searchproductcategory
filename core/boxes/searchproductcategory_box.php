@@ -62,7 +62,7 @@ class searchproductcategorybox extends ModeleBoxes
 
         $this->max = $max;
 
-        //include_once DOL_DOCUMENT_ROOT . "/searchproductcategory/class/searchproductcategory.class.php";
+        // dol_include_once('/searchproductcategory/class/searchproductcategory.class.php');
 
         $text = $langs->trans("MyBoxDescription", $max);
         $this->info_box_head = array(
