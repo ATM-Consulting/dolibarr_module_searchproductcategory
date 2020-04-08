@@ -7,7 +7,10 @@
 	dol_include_once('/comm/propal/class/propal.class.php');
 	dol_include_once('/commande/class/commande.class.php');
 	dol_include_once('/compta/facture/class/facture.class.php');
-	
+	dol_include_once('/supplier_proposal/class/supplier_proposal.class.php');
+	dol_include_once('/fourn/class/fournisseur.commande.class.php');
+	dol_include_once('/fourn/class/fournisseur.facture.class.php');
+
 	$get=GETPOST('get');
 	$put=GETPOST('put');
 
@@ -51,7 +54,10 @@
 			$TProduct=GETPOST('TProduct');
 			$TProductPrice=GETPOST('TProductPrice');
 			$txtva=(float)GETPOST('txtva');
-			
+			if($object_type == 'supplier_proposal') $object_type = 'SupplierProposal';
+			if($object_type == 'order_supplier') $object_type = 'CommandeFournisseur';
+			if($object_type == 'invoice_supplier') $object_type = 'FactureFournisseur';
+
 			if(!empty($TProduct)) {
 				$o=new $object_type($db);
 				//$o=new Propal($db);
