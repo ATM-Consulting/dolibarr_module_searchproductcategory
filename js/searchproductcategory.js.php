@@ -66,14 +66,22 @@ $(document).ready(function() {
 	initSearchProductByCategory("div#arboresenceCategoryProduct");
 
 	$('#addline_spc').click(function() {
+		let is_supplier = $('span.searchbycateg_icone a').data('fourn');
+		if(is_supplier === undefined) is_supplier = 0;
 		$(this).after('<span class="loading"><?php echo img_picto('', 'working.gif') ?></span>');
 		$(this).hide();
 		var TProduct={};
 		var TProductPrice={};
+		var TProductSupplierPrice={};
 
 		$('input.checkSPC:checked').each(function(i,item){
 			var fk_product = $(item).attr('fk_product');
 			TProduct[fk_product] = fk_product;
+			if(is_supplier != 0) {
+				if(TProductSupplierPrice[fk_product] === undefined) TProductSupplierPrice[fk_product]={};
+				TProductSupplierPrice[fk_product][$(item).attr('productfournpriceid')] = $(item).attr('productfournpriceid');
+			}
+
 		});
 
 		<?php if (!empty($conf->global->PRODUIT_MULTIPRICES)) { ?>
@@ -83,15 +91,19 @@ $(document).ready(function() {
 		});
 		<?php } ?>
 
+
+
 		$.ajax({
 			url:"<?php echo dol_buildpath('/searchproductcategory/script/interface.php',1); ?>"
 			,data:{
 				put:"addline"
 				,TProduct:TProduct
 				,TProductPrice:TProductPrice
+				,TProductSupplierPrice:TProductSupplierPrice
 				,object_type:spc_object_type
 				,object_id:spc_object_id
 				,qty:$('#qty_spc').val()
+				,is_supplier:is_supplier
 				<?php if (!empty($conf->global->SUBTOTAL_ALLOW_ADD_LINE_UNDER_TITLE)) { ?>,under_title:$(this).closest('td').children('select.under_title').val()<?php } ?>
 			}
 			,method:'post'
@@ -235,7 +247,7 @@ function getArboSPC(fk_parent, container, keyword = '', productKeyword = '')
 					}
 				<?php } ?>
 
-				$li = $('<li class="product '+spc_line_class+'" productid="'+item.id+'"><input type="checkbox" value="1" name="TProductSPCtoAdd['+item.id+']" fk_product="'+item.id+'" class="checkSPC" /> <a class="checkIt" href="javascript:;" onclick="checkProductSPC('+item.id+')" >'+item.label+'</a> <a class="addToForm" href="javascript:;" onclick="addProductSPC('+item.id+',\''+item.label.replace(/\'/g, "&quot;")+'\', \''+item.ref+'\')"><?php echo img_right($langs->trans('SelectThisProduct')) ?></a> '+TRadioboxMultiPrice+' </li>');
+				$li = $('<li class="product '+spc_line_class+'" productid="'+item.id+'"><input type="checkbox" value="1" name="TProductSPCtoAdd['+item.id+']"  productfournpriceid="'+item.product_fourn_price_id+'" fk_product="'+item.id+'" class="checkSPC" /> <a class="checkIt" href="javascript:;" onclick="checkProductSPC('+item.id+','+item.product_fourn_price_id+')" >'+item.label+'</a> <a class="addToForm" href="javascript:;" onclick="addProductSPC('+item.id+',\''+item.label.replace(/\'/g, "&quot;")+'\', \''+item.ref+'\', \''+item.product_fourn_price_id+'\')"><?php echo img_right($langs->trans('SelectThisProduct')) ?></a> '+TRadioboxMultiPrice+' </li>');
 
 				<?php if (!empty($conf->global->SPC_DISPLAY_DESC_OF_PRODUCT)) { ?>
 					var desc = item.description.replace(/'/g, "\\'");
@@ -288,21 +300,28 @@ function getArboSPC(fk_parent, container, keyword = '', productKeyword = '')
 	});
 }
 
-function checkProductSPC(fk_product) {
-	if( $('input[name="TProductSPCtoAdd['+fk_product+']"]').is(':checked') ) {
-		$('input[name="TProductSPCtoAdd['+fk_product+']"]').prop('checked',false);
-	}
-	else {
-		$('input[name="TProductSPCtoAdd['+fk_product+']"]').prop('checked',true);
+function checkProductSPC(fk_product, product_fourn_price_id) {
+	if($search.find('a').attr('data-fourn')){
+		if ($('input[productfournpriceid="'+ product_fourn_price_id +'"]').is(':checked')) {
+			$('input[productfournpriceid="'+ product_fourn_price_id +'"]').prop('checked', false);
+		} else {
+			$('input[productfournpriceid="'+ product_fourn_price_id +'"]').prop('checked', true);
+		}
+	}else {
+		if ($('input[name="TProductSPCtoAdd[' + fk_product + ']"]').is(':checked')) {
+			$('input[name="TProductSPCtoAdd[' + fk_product + ']"]').prop('checked', false);
+		} else {
+			$('input[name="TProductSPCtoAdd[' + fk_product + ']"]').prop('checked', true);
+		}
 	}
 
 }
 
-function addProductSPC(fk_product,label,ref) {
+function addProductSPC(fk_product,label,ref,product_fourn_price_id) {
 
 	var related = $('div.arboContainer').attr('related');
 	if ($search.find('a').attr('data-fourn')) {
-		fk_product = 'idprod_' + fk_product;
+		fk_product = product_fourn_price_id;
 	}
 	$(related).val(fk_product);
 	$('#prod_entry_mode_predef').prop('checked',true);
