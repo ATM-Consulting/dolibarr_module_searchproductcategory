@@ -24,7 +24,7 @@
 
 			$Tab =array(
 				'TCategory'=>_categories($fk_parent, $keyword)
-				,'TProduct'=>_products($fk_parent, $is_supplier, $productKeyword)
+				,'TProduct'=>_products($fk_parent, $is_supplier, $productKeyword, $fk_soc)
 			);
 
 			if (!empty($conf->global->PRODUIT_MULTIPRICES))
@@ -234,9 +234,9 @@
 			break;
 	}
 
-function _products($fk_parent=0, $is_supplier = 0, $productKeyword = '') {
+function _products($fk_parent=0, $is_supplier = 0, $productKeyword = '', $fk_soc=0) {
 	global $db,$conf,$langs;
-
+	$langs->load('products');
 	if(empty($fk_parent)) return array();
 
 	$parent = new Categorie($db);
@@ -281,19 +281,32 @@ function _products($fk_parent=0, $is_supplier = 0, $productKeyword = '') {
 	if(!empty($TProd) && !empty($is_supplier)) {
 		$TTmpProd = array();
 		foreach($TProd as $key => $prod) {
+			$hasSupplierPrice = false;
 			$prodFourn = new ProductFournisseur($db);
 			$TSupplierPrices = $prodFourn->list_product_fournisseur_price($prod->id);
 			if(!empty($TSupplierPrices)) {
 				foreach($TSupplierPrices as $supplierPrice) {
+					if($supplierPrice->fourn_id != $fk_soc) continue;
 					$tmpProd = clone $prod;
 					$tmpProd->label .= ' ('.$supplierPrice->ref_supplier.' => '.$langs->transnoentitiesnoconv('Qty').' : '.$supplierPrice->fourn_qty.')';
 					$tmpProd->product_fourn_price_id = $supplierPrice->product_fourn_price_id;
 					$tmpProd->fourn_price = $supplierPrice->fourn_price;
+					$hasSupplierPrice = true;
 					$TTmpProd[] = $tmpProd;
 				}
+				unset($TProd[$key]);
+			}
+			if(! $hasSupplierPrice) {
+				$tmpProd = clone $prod;
+				$tmpProd->label .= ' ('.$langs->transnoentitiesnoconv('NoPriceDefinedForThisSupplier').')';
+				$tmpProd->product_fourn_price_id = 0;
+				$tmpProd->fourn_price = 0;
+				$TTmpProd[] = $tmpProd;
 			}
 		}
-		$TProd = array_merge($TProd, $TTmpProd);
+
+
+		$TProd = $TTmpProd;
 	}
 
 	return $TProd;
