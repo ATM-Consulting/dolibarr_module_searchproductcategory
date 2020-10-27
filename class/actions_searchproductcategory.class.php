@@ -108,6 +108,7 @@ class ActionsSearchProductCategory
 					<td valign="middle" align="center" colspan="<?php echo $colspan2; ?>">
 						<?php if (!empty($conf->global->SUBTOTAL_ALLOW_ADD_LINE_UNDER_TITLE)) {
 							dol_include_once('/subtotal/class/subtotal.class.php');
+                            dol_include_once('/subtotal/lib/subtotal.lib.php');
 							$TTitle = TSubtotal::getAllTitleFromDocument($object);
 							echo getHtmlSelectTitle($object);
 						} ?>
