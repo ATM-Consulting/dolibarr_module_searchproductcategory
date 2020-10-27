@@ -24,7 +24,7 @@
 
 			$Tab =array(
 				'TCategory'=>_categories($fk_parent, $keyword)
-				,'TProduct'=>_products($fk_parent, $is_supplier, $productKeyword)
+				,'TProduct'=>_products($fk_parent, $is_supplier, $productKeyword, $fk_soc)
 			);
 
 			if (!empty($conf->global->PRODUIT_MULTIPRICES))
@@ -32,28 +32,30 @@
 				require_once DOL_DOCUMENT_ROOT.'/societe/class/societe.class.php';
 				$societe = new Societe($db);
 				$societe->fetch($fk_soc);
-				
+
 				$Tab['default_price_level'] = 1;
 				if ($societe->id > 0)
 				{
 					$Tab['default_price_level'] = $societe->price_level;
 				}
 			}
-			
+
 			__out($Tab,'json');
-					
+
 			break;
 	}
-	
+
 	switch ($put) {
 		case 'addline':
-			
+
 			$object_type=GETPOST('object_type');
 			$object_id=(int)GETPOST('object_id');
 			$qty=(float)GETPOST('qty');
 			$TProduct=GETPOST('TProduct');
 			$TProductPrice=GETPOST('TProductPrice');
+			$TProductSupplierPrice=GETPOST('TProductSupplierPrice');
 			$txtva=(float)GETPOST('txtva');
+			$is_supplier = GETPOST('is_supplier', 'int');
 			if($object_type == 'supplier_proposal') $object_type = 'SupplierProposal';
 			if($object_type == 'order_supplier') $object_type = 'CommandeFournisseur';
 			if($object_type == 'invoice_supplier') $object_type = 'FactureFournisseur';
@@ -62,7 +64,7 @@
 				$o=new $object_type($db);
 				//$o=new Propal($db);
 				$o->fetch($object_id);
-				
+
 				if(empty($o->thirdparty) && method_exists($o, 'fetch_thirdparty')) {
 					$o->fetch_thirdparty();
 				}
@@ -96,8 +98,8 @@
 	                                        }
 					}
 					if (empty($price)) $price = $p->price;
-					
-					
+
+
 					$remise_percent=0;
 					$info_bits=0;
 					$fk_remise_except=0;
@@ -120,45 +122,126 @@
 					$ventil = 0;
 					$situation_percent = 100;
 					$fk_prev_id = 0;
-					
-					if($o->element == 'commande')
-					{
-					    $res = $o->addline($p->description, $price, $qty, $txtva,0,0,$fk_product, $remise_percent, $info_bits, $fk_remise_except, $price_base_type, $pu_ttc, $date_start, $date_end, $type, $rang, $special_code, $fk_parent_line, $fk_fournprice, $pa_ht, $label,$array_options, $fk_unit, $origin, $origin_id, $pu_ht_devise);
+					if(!empty($is_supplier) && !empty($TProductSupplierPrice[$fk_product])) {
+						foreach($TProductSupplierPrice[$fk_product] as $supplierPriceId){
+							$productFourn = new ProductFournisseur($db);
+							$productFourn->fetch_product_fournisseur_price($supplierPriceId);
+							$res = $o->addline($p->description, $productFourn->fourn_price, $qty, $productFourn->fourn_tva_tx, 0, 0, $fk_product, $supplierPriceId, $productFourn->ref_supplier);
+						}
+					} else {
+						if($o->element == 'commande') {
+							$res = $o->addline($p->description,
+								$price,
+								$qty,
+								$txtva,
+								0,
+								0,
+								$fk_product,
+								$remise_percent,
+								$info_bits,
+								$fk_remise_except,
+								$price_base_type,
+								$pu_ttc,
+								$date_start,
+								$date_end,
+								$type,
+								$rang,
+								$special_code,
+								$fk_parent_line,
+								$fk_fournprice,
+								$pa_ht,
+								$label,
+								$array_options,
+								$fk_unit,
+								$origin,
+								$origin_id,
+								$pu_ht_devise);
+						}
+						else if($o->element == 'propal') {
+							$res = $o->addline($p->description,
+								$price,
+								$qty,
+								$txtva,
+								0,
+								0,
+								$fk_product,
+								$remise_percent,
+								$price_base_type,
+								$pu_ttc,
+								$info_bits,
+								$type,
+								$rang,
+								$special_code,
+								$fk_parent_line,
+								$fk_fournprice,
+								$pa_ht,
+								$label,
+								$date_start,
+								$date_end,
+								$array_options,
+								$fk_unit,
+								$origin,
+								$origin_id,
+								$pu_ht_devise,
+								$fk_remise_except);
+						}
+						else if($o->element == 'facture') {
+							$res = $o->addline($p->description,
+								$price,
+								$qty,
+								$txtva,
+								0,
+								0,
+								$fk_product,
+								$remise_percent,
+								$date_start,
+								$date_end,
+								$ventil,
+								$info_bits,
+								$fk_remise_except,
+								$price_base_type,
+								$pu_ttc,
+								$type,
+								$rang,
+								$special_code,
+								$origin,
+								$origin_id,
+								$fk_parent_line,
+								$fk_fournprice,
+								$pa_ht,
+								$label,
+								$array_options,
+								$situation_percent,
+								$fk_prev_id,
+								$fk_unit,
+								$pu_ht_devise);
+						}
+						else {
+							$res = $o->addline($p->description, $price, $qty, $txtva, 0, 0, $fk_product);
+						}
 					}
-					elseif($o->element == 'propal')
-					{
-						$res = $o->addline($p->description, $price, $qty, $txtva,0,0,$fk_product, $remise_percent, $price_base_type, $pu_ttc, $info_bits, $type, $rang, $special_code, $fk_parent_line, $fk_fournprice, $pa_ht, $label,$date_start, $date_end,$array_options, $fk_unit, $origin, $origin_id, $pu_ht_devise, $fk_remise_except);
-					}
-					elseif($o->element == 'facture')
-					{
-						$res = $o->addline($p->description, $price, $qty, $txtva,0,0,$fk_product, $remise_percent, $date_start, $date_end, $ventil, $info_bits, $fk_remise_except, $price_base_type, $pu_ttc, $type, $rang, $special_code, $origin, $origin_id, $fk_parent_line, $fk_fournprice, $pa_ht, $label, $array_options, $situation_percent, $fk_prev_id, $fk_unit, $pu_ht_devise);
-					}
-					else
-					{
-						$res = $o->addline($p->description, $price, $qty, $txtva,0,0,$fk_product);
-					}
-					
+
 				}
-				
-				
+
+
 			}
-			
+
 			echo 1;
-			
+
 			break;
 		default:
-			
+
 			break;
 	}
 
-function _products($fk_parent=0, $is_supplier = 0, $productKeyword = '') {
+function _products($fk_parent=0, $is_supplier = 0, $productKeyword = '', $fk_soc=0) {
 	global $db,$conf,$langs;
-
+	$langs->load('products');
 	if(empty($fk_parent)) return array();
-	
+
 	$parent = new Categorie($db);
 	$parent->fetch($fk_parent);
-	
+
 	$TProdNew = $parent->getObjectsInCateg('product');
 	$TProd = array();
 
@@ -182,8 +265,8 @@ function _products($fk_parent=0, $is_supplier = 0, $productKeyword = '') {
 
 	    $TProd[] = $prod;
 	}
-	
-	
+
+
 	if (!empty($conf->global->SPC_DISPLAY_DESC_OF_PRODUCT))
 	{
 		require_once DOL_DOCUMENT_ROOT.'/core/lib/functions.lib.php';
@@ -195,7 +278,37 @@ function _products($fk_parent=0, $is_supplier = 0, $productKeyword = '') {
 			$o->unit = $langs->trans($unit);
 		}
 	}
-	
+	if(!empty($TProd) && !empty($is_supplier)) {
+		$TTmpProd = array();
+		foreach($TProd as $key => $prod) {
+			$hasSupplierPrice = false;
+			$prodFourn = new ProductFournisseur($db);
+			$TSupplierPrices = $prodFourn->list_product_fournisseur_price($prod->id);
+			if(!empty($TSupplierPrices)) {
+				foreach($TSupplierPrices as $supplierPrice) {
+					if($supplierPrice->fourn_id != $fk_soc) continue;
+					$tmpProd = clone $prod;
+					$tmpProd->label .= ' ('.$supplierPrice->ref_supplier.' => '.$langs->transnoentitiesnoconv('Qty').' : '.$supplierPrice->fourn_qty.')';
+					$tmpProd->product_fourn_price_id = $supplierPrice->product_fourn_price_id;
+					$tmpProd->fourn_price = $supplierPrice->fourn_price;
+					$hasSupplierPrice = true;
+					$TTmpProd[] = $tmpProd;
+				}
+				unset($TProd[$key]);
+			}
+			if(! $hasSupplierPrice) {
+				$tmpProd = clone $prod;
+				$tmpProd->label .= ' ('.$langs->transnoentitiesnoconv('NoPriceDefinedForThisSupplier').')';
+				$tmpProd->product_fourn_price_id = 0;
+				$tmpProd->fourn_price = 0;
+				$TTmpProd[] = $tmpProd;
+			}
+		}
+
+
+		$TProd = $TTmpProd;
+	}
+
 	return $TProd;
 }
 
@@ -225,17 +338,17 @@ function _categories($fk_parent=0, $keyword='') {
 		$parent = new Categorie($db);
 		if(empty($fk_parent)) {
 			if(empty($conf->global->SPC_DO_NOT_LOAD_PARENT_CAT)) {
-				$TFille = $parent->get_all_categories(0,true);	
+				$TFille = $parent->get_all_categories(0,true);
 			}
-				
+
 		}
 		else {
 			$parent->fetch($fk_parent);
 			$TFille = $parent->get_filles();
 		}
-		
+
 	}
-	
-	
+
+
 	return $TFille;
 }

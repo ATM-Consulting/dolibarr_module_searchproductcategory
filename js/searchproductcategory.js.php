@@ -11,20 +11,20 @@
 var spc_line_class = 'even';
 $(document).ready(function() {
 	$search = $('<span class="searchbycateg_icone"><a href="javascript:;" onclick="openSearchProductByCategory(this)"><?php echo img_picto($langs->trans('SearchByCategory'), 'object_searchproductcategory.png@searchproductcategory') ?></a></span>');
-	
+
 	if($('input#search_idprod').length>0 && $('input#search_idprod').next().attr('class') != 'searchbycateg_icone') {
-		
+
 		$search.find('a').attr('related-label','input#search_idprod');
 		$search.find('a').attr('related','input#idprod');
-		
+
 		$('input#search_idprod').after($search);
-		
+
 	}
 	else if($('select#idprod').length>0 && $('select#idprod').next().attr('class') != 'searchbycateg_icone') {
-		
+
 		$search.find('a').attr('related','select#idprod');
 		$('select#idprod').after($search);
-	
+
 	}
 	else if ($('#nomenclature_bt_add_product').length > 0 || $('#nomenclature_bt_clone_nomenclature').length > 0)
 	{
@@ -35,7 +35,7 @@ $(document).ready(function() {
 
 			$('#nomenclature_bt_add_product').before($search.clone());
 		}
-		
+
 		if ($('#nomenclature_bt_clone_nomenclature').length > 0)
 		{
 			$search.find('a').attr('related-label','input[id*=search_fk_clone_from_product]');
@@ -52,53 +52,72 @@ $(document).ready(function() {
 
         $('input#search_idprodfournprice').after($search);
     }
+	else if ($('select#idprodfournprice').length > 0 && $('select#idprodfournprice').next().attr('class') != 'searchbycateg_icone') {
+
+		let a = $search.find('a');
+		a.attr('related', 'select#idprodfournprice');
+		a.attr('data-fourn', '1');
+		$('select#idprodfournprice').after($search);
+	}
 	else {
 		return false;
 	}
-	
+
 	initSearchProductByCategory("div#arboresenceCategoryProduct");
-	
+
 	$('#addline_spc').click(function() {
+		let is_supplier = $('span.searchbycateg_icone a').data('fourn');
+		if(is_supplier === undefined) is_supplier = 0;
 		$(this).after('<span class="loading"><?php echo img_picto('', 'working.gif') ?></span>');
 		$(this).hide();
 		var TProduct={};
 		var TProductPrice={};
-		
+		var TProductSupplierPrice={};
+
 		$('input.checkSPC:checked').each(function(i,item){
 			var fk_product = $(item).attr('fk_product');
 			TProduct[fk_product] = fk_product;
+			if(is_supplier != 0) {
+				if(TProductSupplierPrice[fk_product] === undefined) TProductSupplierPrice[fk_product]={};
+				TProductSupplierPrice[fk_product][$(item).attr('productfournpriceid')] = $(item).attr('productfournpriceid');
+			}
+
 		});
-		
+
 		<?php if (!empty($conf->global->PRODUIT_MULTIPRICES)) { ?>
 		$('input.radioSPC:checked').each(function(i,item){
 			var priceToUse = $(item).val();
 			TProductPrice[$(item).data('fk-product')] = priceToUse;
 		});
 		<?php } ?>
-		
+
+
+
 		$.ajax({
 			url:"<?php echo dol_buildpath('/searchproductcategory/script/interface.php',1); ?>"
 			,data:{
 				put:"addline"
 				,TProduct:TProduct
 				,TProductPrice:TProductPrice
+				,TProductSupplierPrice:TProductSupplierPrice
 				,object_type:spc_object_type
 				,object_id:spc_object_id
 				,qty:$('#qty_spc').val()
+				,is_supplier:is_supplier
 				<?php if (!empty($conf->global->SUBTOTAL_ALLOW_ADD_LINE_UNDER_TITLE)) { ?>,under_title:$(this).closest('td').children('select.under_title').val()<?php } ?>
 			}
 			,method:'post'
-			,dataType:'json'	
+			,dataType:'json'
 		}).done(function(data) {
-			
+
 			var url = window.location.href;
-			
+
 			url = url.replace(window.location.hash, "");
 			window.location.href=url;
-			
+
 			return;
 		});
-		
+
 	});
 
 	// On empêche les pressions sur la touche entrée de provoquer le submit du formulaire d'ajout de ligne
@@ -118,9 +137,9 @@ $(document).ready(function() {
 });
 
 function openSearchProductByCategory(a) {
-	
+
 	if($('div#popSearchProductByCategory').length == 0) {
-		
+
 		$('body').append('<div id="popSearchProductByCategory" class="arboContainer" spc-role="arbo"><div class="arbo"></div></div>');
 		$( "div#popSearchProductByCategory" ).dialog({
 	      modal: true,
@@ -133,16 +152,16 @@ function openSearchProductByCategory(a) {
 	        }
 	      }
 	    });
-	    
+
 	    initSearchProductByCategory("div#popSearchProductByCategory div.arbo");
 	}
-	
+
 	$pop = $( "div#popSearchProductByCategory" );
 	$pop.attr('related', $(a).attr('related'));
 	$pop.attr('related-label', $(a).attr('related-label'));
-	
+
 	$pop.dialog('open');
-	
+
 }
 function searchCategorySPC(a) {
 
@@ -156,7 +175,7 @@ function searchProductIntoCategorySPC(fk_parent, elem) {
     let keyword = $(elem).parents('#arboresenceCategoryProduct').first().find('input[name=spc_keyword]').val();
 	let productKeyword = $(elem).prev('input.spc_product_keyword_input').val();
 	getArboSPC(fk_parent, $("div#arboresenceCategoryProduct,div#popSearchProductByCategory div.arbo"), keyword, productKeyword);
-	
+
 }
 
 
@@ -168,7 +187,7 @@ function getArboSPC(fk_parent, container, keyword = '', productKeyword = '')
 	container.append('<span class="loading"><?php echo img_picto('', 'working.gif') ?></span>');
 	let is_supplier = $('span.searchbycateg_icone a').data('fourn');
 	if(is_supplier === undefined) is_supplier = 0;
-	
+
 	$.ajax({
 		url:"<?php echo dol_buildpath('/searchproductcategory/script/interface.php',1) ?>"
 		,data:{
@@ -179,18 +198,18 @@ function getArboSPC(fk_parent, container, keyword = '', productKeyword = '')
 			,fk_soc:spc_fk_soc
             ,is_supplier:is_supplier
 		}
-		,dataType:'json'	
+		,dataType:'json'
 	}).done(function(data) {
 
 		$ul = $('<ul class="tree" fk_parent="'+fk_parent+'"></ul>');
-		
+
 		if(data.TCategory.length == 0 && data.TProduct.length ==0) {
-			$ul.append('<li class="none '+spc_line_class+'"><?php 
+			$ul.append('<li class="none '+spc_line_class+'"><?php
 				if(!empty($conf->global->SPC_DO_NOT_LOAD_PARENT_CAT)) {
-					echo $langs->trans('DoASearch');						
+					echo $langs->trans('DoASearch');
 				}
 				else {
-					echo $langs->trans('NothingHere');	
+					echo $langs->trans('NothingHere');
 				}
 			?></li>');
 		}
@@ -210,35 +229,35 @@ function getArboSPC(fk_parent, container, keyword = '', productKeyword = '')
                         <div style="clear: both"></div>\
 			        </li>');
 			});
-			
+
 			$.each(data.TProduct,function(i,item) {
 				spc_line_class = (spc_line_class == 'even') ? 'odd' : 'even';
-				
+
 				var TRadioboxMultiPrice = '';
 				<?php if (!empty($conf->global->PRODUIT_MULTIPRICES)) { ?>
 					for (var p in item.multiprices) {
 						if (item.multiprices_base_type[p] == 'TTC') var priceToUse = parseFloat(item.multiprices_ttc[p]);
 						else var priceToUse = parseFloat(item.multiprices[p]);
-						
+
 						if (isNaN(priceToUse)) priceToUse = 0;
-						
+
 						var checked = false;
 						if (data.default_price_level == p) checked = true;
 						TRadioboxMultiPrice += '<span class="multiprice"><input '+(checked ? "checked" : "")+' class="radioSPC" type="radio" name="TProductSPCPriceToAdd['+item.id+']" value="'+priceToUse+'" data-fk-product="'+item.id+'" style="vertical-align:bottom;" /> ' + priceToUse.toFixed(2) + '</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
 					}
 				<?php } ?>
-				
-				$li = $('<li class="product '+spc_line_class+'" productid="'+item.id+'"><input type="checkbox" value="1" name="TProductSPCtoAdd['+item.id+']" fk_product="'+item.id+'" class="checkSPC" /> <a class="checkIt" href="javascript:;" onclick="checkProductSPC('+item.id+')" >'+item.label+'</a> <a class="addToForm" href="javascript:;" onclick="addProductSPC('+item.id+',\''+item.label.replace(/\'/g, "&quot;")+'\', \''+item.ref+'\')"><?php echo img_right($langs->trans('SelectThisProduct')) ?></a> '+TRadioboxMultiPrice+' </li>');
-				
+
+				$li = $('<li class="product '+spc_line_class+'" productid="'+item.id+'"><input type="checkbox" value="1" name="TProductSPCtoAdd['+item.id+']"  productfournpriceid="'+item.product_fourn_price_id+'" fk_product="'+item.id+'" class="checkSPC" /> <a class="checkIt" href="javascript:;" onclick="checkProductSPC('+item.id+','+item.product_fourn_price_id+')" >'+item.label+'</a> <a class="addToForm" href="javascript:;" onclick="addProductSPC('+item.id+',\''+item.label.replace(/\'/g, "&quot;")+'\', \''+item.ref+'\', \''+item.product_fourn_price_id+'\')"><?php echo img_right($langs->trans('SelectThisProduct')) ?></a> '+TRadioboxMultiPrice+' </li>');
+
 				<?php if (!empty($conf->global->SPC_DISPLAY_DESC_OF_PRODUCT)) { ?>
 					var desc = item.description.replace(/'/g, "\\'");
-				
+
 				<?php 	if(!empty($conf->global->PRODUCT_USE_UNITS)){ ?>
 						desc = desc + "\n Unit : "+item.unit;
 				<?php } ?>
 					var bubble = $("<?php echo addslashes(img_help()); ?>");
 					bubble.attr('title', desc);
-					
+
 					$li.append(bubble);
 				<?php } else if (!empty($conf->global->PRODUCT_USE_UNITS)) { ?>
 					var unit = "Unit : "+item.unit;
@@ -246,7 +265,7 @@ function getArboSPC(fk_parent, container, keyword = '', productKeyword = '')
 					bubble.attr('title', unit);
 					$li.append(bubble);
 				<?php } ?>
-				
+
 				$ul.append($li);
 			});
 
@@ -266,13 +285,13 @@ function getArboSPC(fk_parent, container, keyword = '', productKeyword = '')
 					<div style="clear: both"></div>');
             }
 		}
-		
+
 		container.find('span.loading').remove();
 		container.append($ul);
-		
+
 		$('#arboresenceCategoryProduct').find('a.addToForm').remove();
 		$("div#popSearchProductByCategory").find('input[type=checkbox], span.multiprice').remove();
-		
+
 		var TCheckIt = $("div#popSearchProductByCategory").find('a.checkIt');
 		for (var j=0; j < TCheckIt.length; j++)
 		{
@@ -281,37 +300,47 @@ function getArboSPC(fk_parent, container, keyword = '', productKeyword = '')
 	});
 }
 
-function checkProductSPC(fk_product) {
-	if( $('input[name="TProductSPCtoAdd['+fk_product+']"]').is(':checked') ) {
-		$('input[name="TProductSPCtoAdd['+fk_product+']"]').prop('checked',false);
+function checkProductSPC(fk_product, product_fourn_price_id) {
+	if($search.find('a').attr('data-fourn')){
+		if ($('input[productfournpriceid="'+ product_fourn_price_id +'"]').is(':checked')) {
+			$('input[productfournpriceid="'+ product_fourn_price_id +'"]').prop('checked', false);
+		} else {
+			$('input[productfournpriceid="'+ product_fourn_price_id +'"]').prop('checked', true);
+		}
+	}else {
+		if ($('input[name="TProductSPCtoAdd[' + fk_product + ']"]').is(':checked')) {
+			$('input[name="TProductSPCtoAdd[' + fk_product + ']"]').prop('checked', false);
+		} else {
+			$('input[name="TProductSPCtoAdd[' + fk_product + ']"]').prop('checked', true);
+		}
 	}
-	else {
-		$('input[name="TProductSPCtoAdd['+fk_product+']"]').prop('checked',true);	
-	}
-	
+
 }
 
-function addProductSPC(fk_product,label,ref) {
-	
+function addProductSPC(fk_product,label,ref,product_fourn_price_id) {
+
 	var related = $('div.arboContainer').attr('related');
+	if ($search.find('a').attr('data-fourn')) {
+		fk_product = product_fourn_price_id;
+	}
 	$(related).val(fk_product);
 	$('#prod_entry_mode_predef').prop('checked',true);
-	$('#prod_entry_mode_predef').click();	
+	$('#prod_entry_mode_predef').click();
 
 	if(label) {
 		var relatedLabel = $('div.arboContainer').attr('related-label');
 		if (typeof ref != 'undefined') $(relatedLabel).val(ref);
 		else $(relatedLabel).val(label);
-		
-		$('#idprod').trigger('change');
+
+		$(related).trigger('change');
 	}
-	
+
 	$pop = $( "div#popSearchProductByCategory" );
 	$pop.dialog('close');
 }
 
 function initSearchProductByCategory(selector) {
-	
+
 	$arbo = $( selector );
 	$arbo.html();
 	$arbo.append('\
@@ -321,6 +350,6 @@ function initSearchProductByCategory(selector) {
 			<a href="javascript:;" onclick="searchCategorySPC(this)"><?php echo img_picto('','search'); ?></a>\
 		</div>');
 	$arbo.append('<ul class="tree"><?php echo img_picto('', 'working.gif') ?></ul>');
-	
+
 	getArboSPC(0, $arbo);
 }
