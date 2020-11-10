@@ -60,7 +60,7 @@ class ActionsSearchProductCategory
 	 * @return  int                             < 0 on error, 0 on success, 1 to replace standard code
 	 */
 	function formAddObjectLine ($parameters, &$object, &$action, $hookmanager) {
-		
+
 		global $db,$langs,$user,$conf,$inputalsopricewithtax;
 
 		$TContext = explode(':',$parameters['context']);
@@ -81,13 +81,13 @@ class ActionsSearchProductCategory
 				$colspan2 = 4;
 				if (!empty($inputalsopricewithtax)) { $colspan1++; $colspan2++; }
 				if (!empty($conf->global->PRODUCT_USE_UNITS)) $colspan1++;
-				if (!empty($conf->margin->enabled)) 
+				if (!empty($conf->margin->enabled))
 				{
 					$colspan1++;
 					if ($user->rights->margins->creer && ! empty($conf->global->DISPLAY_MARGIN_RATES)) $colspan1++;
 					if ($user->rights->margins->creer && ! empty($conf->global->DISPLAY_MARK_RATES)) $colspan1++;
 				}
-				
+
 	        	$langs->load('searchproductcategory@searchproductcategory');
 				?>
 
@@ -99,7 +99,7 @@ class ActionsSearchProductCategory
 				<tr class="pair">
 					<td colspan="<?php echo $colspan1; ?>">
 						<div id="arboresenceCategoryProduct" spc-role="arbo-multiple">
-							
+
 						</div>
 					</td>
 					<td class="nobottom" align="right">
@@ -115,22 +115,22 @@ class ActionsSearchProductCategory
 						<input id="addline_spc" class="button" type="button" name="addline_timesheet" value="<?php echo $langs->trans('Add') ?>">
 					</td>
 				</tr>
-				
-				<?php				
+
+				<?php
 			}
 
         }
 
 		return 0;
 	}
-	
+
 	function addMoreActionsButtons($parameters, &$object, &$action, $hookmanager)
 	{
 		$TContext = explode(':', $parameters['context']);
-		
+
 		if (in_array('nomenclaturecard', $TContext))
 		{
-			if (GETPOST('json')) echo '<script type="text/javascript" src="'. dol_buildpath('/searchproductcategory/js/searchproductcategory.js.php', 1).'" ></script>' ;
+			if (GETPOST('json', 'none')) echo '<script type="text/javascript" src="'. dol_buildpath('/searchproductcategory/js/searchproductcategory.js.php', 1).'" ></script>' ;
 		}
 	}
 }
