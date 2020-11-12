@@ -11,15 +11,15 @@
 	dol_include_once('/fourn/class/fournisseur.commande.class.php');
 	dol_include_once('/fourn/class/fournisseur.facture.class.php');
 
-	$get=GETPOST('get');
-	$put=GETPOST('put');
+	$get=GETPOST('get', 'none');
+	$put=GETPOST('put', 'none');
 
 	switch ($get) {
 		case 'categories':
-			$fk_parent = (int)GETPOST('fk_parent');
-			$keyword= GETPOST('keyword');
-			$productKeyword = GETPOST('productKeyword');
-			$fk_soc = GETPOST('fk_soc');
+			$fk_parent = (int)GETPOST('fk_parent', 'int');
+			$keyword= GETPOST('keyword', 'none');
+			$productKeyword = GETPOST('productKeyword', 'none');
+			$fk_soc = (int)GETPOST('fk_soc', 'int');
 			$is_supplier = GETPOST('is_supplier', 'int');
 
 			$Tab =array(
@@ -48,13 +48,13 @@
 	switch ($put) {
 		case 'addline':
 
-			$object_type=GETPOST('object_type');
-			$object_id=(int)GETPOST('object_id');
-			$qty=(float)GETPOST('qty');
-			$TProduct=GETPOST('TProduct');
-			$TProductPrice=GETPOST('TProductPrice');
-			$TProductSupplierPrice=GETPOST('TProductSupplierPrice');
-			$txtva=(float)GETPOST('txtva');
+			$object_type=GETPOST('object_type', 'none');
+			$object_id=(int)GETPOST('object_id', 'int');
+			$qty=(float)GETPOST('qty', 'int');
+			$TProduct=GETPOST('TProduct', 'array');
+			$TProductPrice=GETPOST('TProductPrice', 'array');
+			$TProductSupplierPrice=GETPOST('TProductSupplierPrice', 'array');
+			$txtva=(float)GETPOST('txtva', 'int');
 			$is_supplier = GETPOST('is_supplier', 'int');
 			if($object_type == 'supplier_proposal') $object_type = 'SupplierProposal';
 			if($object_type == 'order_supplier') $object_type = 'CommandeFournisseur';
