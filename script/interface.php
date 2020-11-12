@@ -16,10 +16,10 @@
 
 	switch ($get) {
 		case 'categories':
-			$fk_parent = GETPOST('fk_parent', 'int');
+			$fk_parent = (int)GETPOST('fk_parent', 'int');
 			$keyword= GETPOST('keyword', 'none');
 			$productKeyword = GETPOST('productKeyword', 'none');
-			$fk_soc = GETPOST('fk_soc', 'int');
+			$fk_soc = (int)GETPOST('fk_soc', 'int');
 			$is_supplier = GETPOST('is_supplier', 'int');
 
 			$Tab =array(
@@ -49,12 +49,12 @@
 		case 'addline':
 
 			$object_type=GETPOST('object_type', 'none');
-			$object_id=GETPOST('object_id', 'int');
-			$qty=GETPOST('qty', 'int');
+			$object_id=(int)GETPOST('object_id', 'int');
+			$qty=(float)GETPOST('qty', 'int');
 			$TProduct=GETPOST('TProduct', 'array');
 			$TProductPrice=GETPOST('TProductPrice', 'array');
 			$TProductSupplierPrice=GETPOST('TProductSupplierPrice', 'array');
-			$txtva=GETPOST('txtva', 'int');
+			$txtva=(float)GETPOST('txtva', 'int');
 			$is_supplier = GETPOST('is_supplier', 'int');
 			if($object_type == 'supplier_proposal') $object_type = 'SupplierProposal';
 			if($object_type == 'order_supplier') $object_type = 'CommandeFournisseur';
