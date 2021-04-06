@@ -1,7 +1,13 @@
 <?php
-	require '../config.php';
 
 	header('Content-Type: application/javascript');
+
+	if (!defined('NOTOKENRENEWAL')) {
+		define('NOTOKENRENEWAL', 1);
+	}
+
+	require '../config.php';
+
 
 	if(empty($user->rights->searchproductcategory->user->search)) exit;
 
