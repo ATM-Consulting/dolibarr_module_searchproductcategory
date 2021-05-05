@@ -348,7 +348,17 @@ function _categories($fk_parent=0, $keyword='') {
 		}
 
 	}
+	
+	// Sort by label	
+	if(!empty($TFille)) {
+	   usort($TFille, "cmp");
+	}
 
 
 	return $TFille;
+}
+
+function cmp($a, $b)
+{
+    return strcmp($a->label, $b->label);
 }
