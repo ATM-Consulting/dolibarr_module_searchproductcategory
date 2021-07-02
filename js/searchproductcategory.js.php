@@ -2,6 +2,9 @@
 
 	header('Content-Type: application/javascript');
 
+	if (!defined("NOCSRFCHECK")) {
+		define('NOCSRFCHECK', 1);
+	}
 	if (!defined('NOTOKENRENEWAL')) {
 		define('NOTOKENRENEWAL', 1);
 	}
